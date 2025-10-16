@@ -5,10 +5,11 @@ import { MessageBubble } from "./message-bubble";
 
 interface MessageListProps {
   messages: ChatMessage[];
-  onCopyMessage?: (content: string) => void;
+  copiedMessageId?: string | null;
+  onCopyMessage?: (content: string, id: string) => void;
 }
 
-export function MessageList({ messages, onCopyMessage }: MessageListProps) {
+export function MessageList({ messages, copiedMessageId, onCopyMessage }: MessageListProps) {
   const sorted = useMemo(
     () => [...messages].sort((a, b) => a.createdAt - b.createdAt),
     [messages],
@@ -18,7 +19,12 @@ export function MessageList({ messages, onCopyMessage }: MessageListProps) {
     <ScrollArea className="h-full p-6">
       <div className="space-y-4">
         {sorted.map((message) => (
-          <MessageBubble key={message.id} message={message} onCopy={onCopyMessage} />
+          <MessageBubble
+            key={message.id}
+            message={message}
+            isCopied={copiedMessageId === message.id}
+            onCopy={onCopyMessage}
+          />
         ))}
       </div>
     </ScrollArea>

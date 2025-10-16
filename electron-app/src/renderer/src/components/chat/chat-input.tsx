@@ -2,6 +2,7 @@ import { useCallback } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { Paperclip, Sparkles } from "lucide-react";
 
 interface ChatInputProps {
   value: string;
@@ -26,13 +27,26 @@ export function ChatInput({ value, onChange, onSubmit, onStop, disabled, canStop
   );
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3 rounded-xl border border-border/60 bg-layer/70 p-4 shadow-inner">
+      <div className="flex items-center justify-between text-xs text-muted-foreground">
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground" disabled>
+            <Paperclip className="h-4 w-4" />
+            <span className="sr-only">附件（即将推出）</span>
+          </Button>
+          <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground" disabled>
+            <Sparkles className="h-4 w-4" />
+            <span className="sr-only">预设提示</span>
+          </Button>
+        </div>
+        <span>Enter 发送 · Shift+Enter 换行</span>
+      </div>
       <Textarea
         value={value}
         onChange={(event) => onChange(event.target.value)}
         onKeyDown={handleKeyDown}
-        placeholder="输入消息，Enter 发送，Shift+Enter 换行"
-        className="min-h-[140px]"
+        placeholder="向代理描述你的场景或问题…"
+        className="min-h-[140px] bg-background/60"
       />
       <div className="flex items-center justify-between text-xs text-muted-foreground">
         <span>AgentRelay 将通过本地 Runtime 调用 DeepSeek 模型。</span>

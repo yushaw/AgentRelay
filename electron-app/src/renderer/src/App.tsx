@@ -34,17 +34,16 @@ import { Loader2, Settings } from "lucide-react";
 function RuntimeIndicator() {
   const runtime = useAppStore((state) => state.runtime);
   return (
-    <div className="flex items-center gap-2 rounded-full border border-border px-3 py-1 text-xs">
-      <span
-        className={cn(
-          "h-2 w-2 rounded-full",
-          runtime.ready ? "bg-green-400" : "bg-yellow-400 animate-pulse",
-        )}
-      />
-      <span>
+    <div className="flex items-center gap-2 rounded-full border border-border/60 bg-layer/70 px-3 py-1 text-xs shadow-sm">
+      {runtime.ready ? (
+        <span className="h-2 w-2 rounded-full bg-emerald-400" />
+      ) : (
+        <Loader2 className="h-3.5 w-3.5 animate-spin text-yellow-300" />
+      )}
+      <span className="text-muted-foreground">
         {runtime.ready
-          ? `Runtime (${runtime.host}:${runtime.port}) 已就绪`
-          : "等待 Runtime 就绪"}
+          ? `Runtime ${runtime.host}:${runtime.port}`
+          : "等待本地 Runtime 启动"}
       </span>
     </div>
   );
@@ -197,7 +196,7 @@ export default function App() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [hydrated, setHydrated] = useState(false);
   const hydrationRef = useRef(false);
-  const { copy, copied } = useCopyToClipboard();
+  const { copy, copiedId } = useCopyToClipboard();
   const eventSourceRef = useRef<EventSource | null>(null);
   const [stream, setStream] = useState<ActiveStream | null>(null);
   const [sending, setSending] = useState(false);
@@ -427,6 +426,7 @@ export default function App() {
       isStreaming: false,
     });
     setStream(null);
+    setSending(false);
   };
 
   useEffect(() => () => {
@@ -445,12 +445,11 @@ export default function App() {
             onCreate={handleCreateSession}
             onSelect={selectSession}
             onDelete={handleDeleteSession}
+            onRename={renameSession}
             trailingControls={
-              <div className="mt-4 flex flex-col gap-2">
-                <RuntimeIndicator />
-                <Button variant="ghost" className="justify-start gap-2" onClick={() => setSettingsOpen(true)}>
-                  <Settings className="h-4 w-4" /> 设置
-                </Button>
+              <div className="mt-4 space-y-2 text-xs text-muted-foreground">
+                <p>会话与密钥仅存储于本地设备。</p>
+                <p>双击标题或使用右侧图标即可重命名或删除会话。</p>
               </div>
             }
           />
@@ -479,7 +478,12 @@ export default function App() {
                 </span>
               </p>
             </div>
-            <RuntimeIndicator />
+            <div className="flex items-center gap-3">
+              <Button variant="ghost" size="sm" className="gap-2" onClick={() => setSettingsOpen(true)}>
+                <Settings className="h-4 w-4" /> 设置
+              </Button>
+              <RuntimeIndicator />
+            </div>
           </div>
         }
         footer={
@@ -499,7 +503,8 @@ export default function App() {
           <div className="flex-1 rounded-xl border border-border bg-card/40">
             <MessageList
               messages={activeSession?.messages ?? []}
-              onCopyMessage={(content) => copy(content)}
+              copiedMessageId={copiedId}
+              onCopyMessage={(content, id) => copy(content, id)}
             />
           </div>
           <Separator className="opacity-30" />
@@ -508,7 +513,7 @@ export default function App() {
               模型：{runtime.model} · 主机：{runtime.host}:{runtime.port} · 上次更新：
               {runtime.lastUpdated ? dayjs(runtime.lastUpdated).fromNow() : "—"}
             </p>
-            <p>{copied ? <span className="text-green-400">已复制消息到剪贴板</span> : null}</p>
+            {copiedId ? <p className="text-green-400">已复制消息到剪贴板</p> : null}
           </div>
         </div>
       </AppShell>
