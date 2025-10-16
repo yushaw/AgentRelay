@@ -6,14 +6,9 @@ import { dirname, join, resolve } from "node:path";
 import { EventEmitter } from "node:events";
 import log from "electron-log";
 
-interface RuntimeOptions {
-  host: string;
-  port: number;
-  headless: boolean;
-  pythonPath?: string;
-  offline: boolean;
-  allowGuest: boolean;
-}
+import type { RuntimeOptions } from "../shared/ipc";
+import type { StoredChatData } from "../shared/types";
+import { ChatStore } from "./chatStore";
 
 interface ReadyPayload {
   port: number;
@@ -162,6 +157,7 @@ function parseRuntimeOptions(argv: string[]): RuntimeOptions {
 
 let mainWindow: BrowserWindow | null = null;
 const runtimeOptions = parseRuntimeOptions(process.argv.slice(1));
+let chatStore: ChatStore | null = null;
 
 if (app.isPackaged && process.platform === "win32") {
   runtimeOptions.pythonPath = join(
@@ -171,6 +167,14 @@ if (app.isPackaged && process.platform === "win32") {
   );
 }
 const runtimeManager = new PythonRuntimeManager(runtimeOptions);
+
+async function ensureChatStore(): Promise<ChatStore> {
+  if (!chatStore) {
+    chatStore = new ChatStore();
+    await chatStore.init();
+  }
+  return chatStore;
+}
 
 function resolveRendererPath(): string {
   if (app.isPackaged) {
@@ -214,6 +218,8 @@ function bootstrap(): void {
   });
 
   app.whenReady().then(async () => {
+    await ensureChatStore();
+
     runtimeManager.start();
     runtimeManager.once("ready", async () => {
       log.info(`Python runtime ready on port ${runtimeOptions.port}`);
@@ -259,5 +265,15 @@ function bootstrap(): void {
 }
 
 ipcMain.handle("runtime:get-options", () => runtimeOptions);
+
+ipcMain.handle("sessions:load", async () => {
+  const store = await ensureChatStore();
+  return store.getAll();
+});
+
+ipcMain.handle("sessions:save", async (_event, data: StoredChatData) => {
+  const store = await ensureChatStore();
+  await store.setAll(data);
+});
 
 bootstrap();

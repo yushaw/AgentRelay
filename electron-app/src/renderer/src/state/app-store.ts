@@ -1,8 +1,9 @@
 import { nanoid } from "nanoid";
 import { create } from "zustand";
-import dayjs from "dayjs";
 
 import type { ChatMessage, ChatSession, DeepSeekSettings, RuntimeStatus } from "@/types";
+import type { StoredChatData } from "../../../shared/types";
+import dayjs from "@/lib/dayjs";
 
 interface AppState {
   sessions: ChatSession[];
@@ -12,10 +13,13 @@ interface AppState {
   createSession: (title?: string) => string;
   selectSession: (sessionId: string) => void;
   deleteSession: (sessionId: string) => void;
+  renameSession: (sessionId: string, title: string) => void;
   appendMessage: (sessionId: string, message: ChatMessage) => void;
   updateMessage: (sessionId: string, messageId: string, patch: Partial<ChatMessage>) => void;
   setSettings: (settings: Partial<DeepSeekSettings>) => void;
   setRuntimeStatus: (runtime: Partial<RuntimeStatus>) => void;
+  hydrate: (data: StoredChatData) => void;
+  getSnapshot: () => StoredChatData;
 }
 
 const now = () => dayjs().valueOf();
@@ -49,7 +53,7 @@ const defaultRuntime: RuntimeStatus = {
   lastUpdated: null,
 };
 
-export const useAppStore = create<AppState>((set) => ({
+export const useAppStore = create<AppState>((set, get) => ({
   sessions: [defaultSession],
   activeSessionId: defaultSession.id,
   settings: defaultSettings,
@@ -81,6 +85,14 @@ export const useAppStore = create<AppState>((set) => ({
         state.activeSessionId === sessionId ? sessions[0]?.id ?? null : state.activeSessionId;
       return { sessions, activeSessionId };
     });
+  },
+
+  renameSession: (sessionId, title) => {
+    set((state) => ({
+      sessions: state.sessions.map((session) =>
+        session.id === sessionId ? { ...session, title, updatedAt: now() } : session,
+      ),
+    }));
   },
 
   appendMessage: (sessionId, message) => {
@@ -121,5 +133,22 @@ export const useAppStore = create<AppState>((set) => ({
     set((state) => ({
       runtime: { ...state.runtime, ...runtime, lastUpdated: now() },
     }));
+  },
+
+  hydrate: (data) => {
+    const sessions = data.sessions.length ? data.sessions : [defaultSession];
+    const activeSessionId =
+      data.activeSessionId && sessions.some((session) => session.id === data.activeSessionId)
+        ? data.activeSessionId
+        : sessions[0]?.id ?? null;
+    set({ sessions, activeSessionId });
+  },
+
+  getSnapshot: () => {
+    const state = get();
+    return {
+      sessions: state.sessions,
+      activeSessionId: state.activeSessionId,
+    };
   },
 }));

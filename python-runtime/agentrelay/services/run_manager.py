@@ -94,7 +94,10 @@ class RunManager:
 
         await queue.put(self._event("run.started", {"runId": run_id}))
 
-        api_key = self._settings_store.get_deepseek_api_key()
+        deepseek_settings = self._settings_store.get_deepseek_settings(
+            default_base=self._settings.deepseek_api_base,
+        )
+        api_key = deepseek_settings.get("apiKey")
         if not api_key:
             await queue.put(
                 self._event(
@@ -108,9 +111,11 @@ class RunManager:
             )
             return
 
+        base_url = deepseek_settings.get("baseUrl") or self._settings.deepseek_api_base
+
         client = AsyncOpenAI(
             api_key=api_key,
-            base_url=self._settings.deepseek_api_base,
+            base_url=base_url,
         )
 
         messages = self._build_messages(payload)

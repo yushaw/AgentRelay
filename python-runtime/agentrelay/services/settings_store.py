@@ -33,26 +33,46 @@ class SettingsStore:
         self._settings_file.write_text(json.dumps(data, indent=2), encoding="utf-8")
 
     # DeepSeek specific helpers -------------------------------------------------
-    def get_deepseek_api_key(self) -> str | None:
+    def get_deepseek_settings(self, default_base: str | None = None) -> dict[str, str | None]:
         data = self.load()
         deepseek = data.get("deepseek") or {}
-        key = deepseek.get("apiKey")
-        if isinstance(key, str) and key.strip():
-            return key
-        return None
+        api_key = deepseek.get("apiKey")
+        base_url = deepseek.get("baseUrl") or default_base
+        return {
+            "apiKey": api_key if isinstance(api_key, str) else None,
+            "baseUrl": base_url if isinstance(base_url, str) else default_base,
+        }
 
-    def set_deepseek_api_key(self, api_key: str | None) -> None:
+    def set_deepseek_settings(self, api_key: str | None, base_url: str | None) -> None:
         data = self.load()
         deepseek = data.get("deepseek") or {}
-        if api_key and api_key.strip():
-            deepseek["apiKey"] = api_key.strip()
-        else:
-            deepseek.pop("apiKey", None)
+
+        if api_key is not None:
+            api_key = api_key.strip()
+            if api_key:
+                deepseek["apiKey"] = api_key
+            else:
+                deepseek.pop("apiKey", None)
+
+        if base_url is not None:
+            base_url = base_url.strip()
+            if base_url:
+                deepseek["baseUrl"] = base_url
+            else:
+                deepseek.pop("baseUrl", None)
+
         if deepseek:
             data["deepseek"] = deepseek
         elif "deepseek" in data:
             data.pop("deepseek")
         self.save(data)
+
+    def get_deepseek_api_key(self) -> str | None:
+        return self.get_deepseek_settings().get("apiKey")
+
+    def get_deepseek_api_base(self, fallback: str) -> str:
+        settings = self.get_deepseek_settings(default_base=fallback)
+        return (settings.get("baseUrl") or fallback).strip()
 
     def deepseek_api_key_set(self) -> bool:
         return self.get_deepseek_api_key() is not None

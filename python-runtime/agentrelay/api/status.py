@@ -32,6 +32,8 @@ async def get_status(
     settings: AgentRelaySettings = Depends(),
     store: SettingsStore = Depends(get_settings_store),
 ) -> ServiceStatusResponse:
+    deepseek_settings = store.get_deepseek_settings(settings.deepseek_api_base)
+
     return ServiceStatusResponse(
         service=settings.service_name,
         version=settings.service_version,
@@ -41,9 +43,9 @@ async def get_status(
         metadata={
             "offlineMode": settings.offline_mode,
             "deepseek": {
-                "apiKeySet": store.deepseek_api_key_set(),
+                "apiKeySet": bool(deepseek_settings.get("apiKey")),
                 "model": settings.deepseek_model,
-                "baseUrl": settings.deepseek_api_base,
+                "baseUrl": deepseek_settings.get("baseUrl") or settings.deepseek_api_base,
             },
         },
     )
