@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from .api.routes import register_routes
 from .config import AgentRelaySettings
@@ -14,6 +15,13 @@ def create_app(settings: AgentRelaySettings | None = None) -> FastAPI:
         docs_url=None,
         redoc_url=None,
         openapi_url="/openapi.json",
+    )
+
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"] ,
+        allow_methods=["*"] ,
+        allow_headers=["*"] ,
     )
 
     settings_store = SettingsStore(app_name="AgentRelay", app_author="AgentRelay")
