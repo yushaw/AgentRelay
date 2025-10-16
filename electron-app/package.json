@@ -1,0 +1,65 @@
+{
+  "name": "agentrelay-electron",
+  "version": "0.1.0",
+  "description": "Electron shell for AgentRelay on Windows",
+  "main": "dist/main/main.js",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build": "npm run build:main",
+    "build:main": "tsc -p tsconfig.main.json",
+    "lint": "eslint \"src/**/*.ts\"",
+    "start": "npm run build:main && electron dist/main/main.js",
+    "dist": "npm run build:main && electron-builder --win --x64"
+  },
+  "dependencies": {
+    "electron-log": "^5.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.12.7",
+    "electron": "^29.1.0",
+    "electron-builder": "^24.13.3",
+    "eslint": "^8.57.0",
+    "typescript": "^5.4.5"
+  },
+  "build": {
+    "appId": "com.snapdescribe.agentrelay",
+    "productName": "AgentRelay",
+    "asar": true,
+    "directories": {
+      "buildResources": "build"
+    },
+    "files": [
+      "dist/main/**/*",
+      {
+        "from": "src/renderer",
+        "to": "renderer",
+        "filter": ["**/*"]
+      }
+    ],
+    "extraResources": [
+      {
+        "from": "../python-runtime/entrypoint.py",
+        "to": "python-runtime/entrypoint.py"
+      },
+      {
+        "from": "../python-runtime/dist",
+        "to": "python-runtime"
+      }
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        }
+      ],
+      "artifactName": "${productName}-${version}-win${arch}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "perMachine": false
+    }
+  }
+}

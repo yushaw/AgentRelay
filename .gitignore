@@ -1,0 +1,18 @@
+# Node artifacts
+electron-app/node_modules/
+electron-app/dist/
+
+# Python artifacts
+python-runtime/.venv/
+python-runtime/__pycache__/
+python-runtime/*.pyc
+python-runtime/.cache/
+python-runtime/dist/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+*.log
+
+# Installer outputs
+installer/out/
