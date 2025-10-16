@@ -58,3 +58,9 @@ node scripts/agentrelay-cli.mjs --serve
 3. 安装程序支持 `--headless`、`--no-ui` 等运行参数，通过 `agentrelay.exe --serve --headless` 进入无头模式。
 
 > 若需要自动化构建，可在 CI 中先调用自定义脚本填充 `python-runtime/dist`，再运行 `npm run dist`。
+
+## 6. DeepSeek 对话调试
+- 启动桌面端后，等待状态栏显示 “Python runtime 已就绪”。
+- 在“DeepSeek 设置”卡片中粘贴 OpenAI 兼容的 DeepSeek API Key，点击 **保存**，状态提示会更新为“已保存”。
+- 输入任意消息点击 **发送**，Electron 会通过本地 `/runs` API 创建 LangGraph Run，SSE 事件流会实时更新对话气泡。
+- Runtime 日志区域展示 Python 侧 JSONL 输出，便于观察模型调用、错误信息等；同样可在 `/status` 的 `metadata.deepseek` 字段确认 API Key 是否已配置。

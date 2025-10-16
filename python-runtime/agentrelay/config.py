@@ -27,5 +27,13 @@ class AgentRelaySettings(BaseSettings):
         default=None,
         description="Optional override for embedded Python interpreter paths.",
     )
+    deepseek_api_base: str = Field(
+        default="https://api.deepseek.com/v1",
+        description="Base URL for DeepSeek OpenAI-compatible endpoint.",
+    )
+    deepseek_model: str = Field(
+        default="deepseek-chat",
+        description="Default DeepSeek model identifier.",
+    )
 
     model_config = SettingsConfigDict(env_prefix="AGENTRELAY_", env_file=".env", extra="ignore")

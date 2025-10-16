@@ -3,7 +3,7 @@
 AgentRelay 是一个面向 Windows 10+ 的本地 AI Agent “副驾”平台，组合 Electron 桌面端对话体验与 Python LangGraph Runtime，为 SnapDescribe 生态及第三方应用提供统一的推理、工具编排与通信能力。
 
 ## 1. 项目目标
-- 交付一个可独立安装的桌面端：Electron 提供 ChatGPT 式对话 UI，并通过本地 HTTP/SSE 接入 LangGraph 工作流。
+- 交付一个可独立安装的桌面端：Electron 提供基于 DeepSeek 的对话 UI，通过本地 HTTP/SSE 接入 LangGraph 工作流，可在设置中保存 API Key 并即时对话。
 - 暴露可复用的本地服务：任何客户端（Electron、自研工具或 SnapDescribe.Host）都可以通过 AgentRelay 协议访问 `/status`、`/agents`、`/runs` 等接口。
 - 保持安全、可审计：运行环境内置受控 Python 解释器、日志输出与工具调用闭环，满足 deterministic 与离线约束。
 
@@ -12,7 +12,7 @@ AgentRelay 是一个面向 Windows 10+ 的本地 AI Agent “副驾”平台，�
 AgentRelay/
  ├─ electron-app/         # Electron 主工程 + 构建配置
  │   ├─ src/main/         # 主进程（管理 Python runtime、headless 模式、IPC）
- │   ├─ src/renderer/     # 对话 UI（最小原型）
+ │   ├─ src/renderer/     # 对话 UI（DeepSeek Chat + 设置面板）
  │   └─ package.json      # electron-builder 配置、脚本
  ├─ python-runtime/
  │   ├─ agentrelay/       # FastAPI + LangGraph Runtime
@@ -54,6 +54,8 @@ Electron 与 Python 始终通过本地 HTTP/SSE 通信；主进程只封装协�
 - **M2 Catalog & UI**：`/agents` 模板目录、对话/日志可视化、Runtime 下载校验。
 - **M3 安全稳定**：鉴权、配置加密、并发限制、错误码与超时策略、自动更新。
 - **M4 生态扩展**：MCP/外部模型桥接、热更新工作流、CI/CD。
+
+> 当前实现的 Electron UI 已内置 DeepSeek 对话体验：在设置面板中保存 API Key 后即可通过 `POST /runs` + SSE 体验流式回复，同时 UI 会展示运行日志与事件流。
 
 ## 5. 发布形态
 - 目标平台：Windows 10 及以上（后续再评估其他平台）。

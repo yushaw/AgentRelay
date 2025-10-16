@@ -34,6 +34,14 @@ def parse_args() -> argparse.Namespace:
         "--protocol-version",
         help="Override reported protocol version string.",
     )
+    parser.add_argument(
+        "--deepseek-base",
+        help="Override DeepSeek OpenAI-compatible base URL.",
+    )
+    parser.add_argument(
+        "--deepseek-model",
+        help="Override default DeepSeek model identifier.",
+    )
     return parser.parse_args()
 
 
@@ -53,6 +61,10 @@ def build_settings(args: argparse.Namespace) -> AgentRelaySettings:
         overrides["service_version"] = args.service_version
     if args.protocol_version:
         overrides["protocol_version"] = args.protocol_version
+    if args.deepseek_base:
+        overrides["deepseek_api_base"] = args.deepseek_base
+    if args.deepseek_model:
+        overrides["deepseek_model"] = args.deepseek_model
     return AgentRelaySettings(**overrides)
 
 

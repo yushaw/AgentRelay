@@ -1,10 +1,11 @@
 from datetime import datetime, timezone
 from typing import Any
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from pydantic import BaseModel, Field
 
 from ..config import AgentRelaySettings
+from ..services.settings_store import SettingsStore
 
 router = APIRouter()
 
@@ -19,13 +20,30 @@ class ServiceStatusResponse(BaseModel):
     metadata: dict[str, Any] = Field(default_factory=dict)
 
 
+def get_settings_store(request: Request) -> SettingsStore:
+    store: SettingsStore | None = getattr(request.app.state, "settings_store", None)
+    if not store:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Settings store not initialised")
+    return store
+
+
 @router.get("", response_model=ServiceStatusResponse)
-async def get_status(settings: AgentRelaySettings = Depends()) -> ServiceStatusResponse:
+async def get_status(
+    settings: AgentRelaySettings = Depends(),
+    store: SettingsStore = Depends(get_settings_store),
+) -> ServiceStatusResponse:
     return ServiceStatusResponse(
         service=settings.service_name,
         version=settings.service_version,
         protocolVersion=settings.protocol_version,
         agentsEtag=settings.agents_etag,
         maxConcurrentRuns=settings.max_concurrent_runs,
-        metadata={"offlineMode": settings.offline_mode},
+        metadata={
+            "offlineMode": settings.offline_mode,
+            "deepseek": {
+                "apiKeySet": store.deepseek_api_key_set(),
+                "model": settings.deepseek_model,
+                "baseUrl": settings.deepseek_api_base,
+            },
+        },
     )
