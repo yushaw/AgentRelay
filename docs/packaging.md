@@ -44,3 +44,11 @@ resources/
 - **自动更新**：Electron Builder 已生成 NSIS 安装包，后续可拓展 `publish` 字段与 AutoUpdater 结合。
 
 > 建议在 CI/CD 中编写脚本自动拉取 embed Python、安装依赖并调用 `npm run dist`，确保产物一致。
+
+## 4. GitHub Release 工作流
+- 仓库已提供 `.github/workflows/release.yml`：当推送符合 `v*.*.*` 的标签时，会在 `windows-latest` Runner 上自动执行发布流程。
+- 工作流步骤：
+  1. 下载并构建嵌入式 Python（`python scripts/bootstrap_python_runtime.py`）。
+  2. 在 `electron-app/` 内安装依赖并运行 `npm run dist`。
+  3. 上传生成的 `AgentRelay-*.exe` 与 `.blockmap` 到当前 Job 产物，并附加到对应的 GitHub Release。
+- 若需要签名或额外分发渠道，可在该工作流基础上继续扩展。

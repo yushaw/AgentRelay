@@ -1,0 +1,58 @@
+name: Release AgentRelay
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+jobs:
+  build-windows-installer:
+    runs-on: windows-latest
+    env:
+      PYTHONIOENCODING: utf-8
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Python dependencies for tooling
+        run: python -m pip install --upgrade pip
+
+      - name: Prepare embedded Python runtime
+        run: python scripts/bootstrap_python_runtime.py
+
+      - name: Set up Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: electron-app/package-lock.json
+
+      - name: Install npm dependencies
+        run: npm install
+        working-directory: electron-app
+
+      - name: Build Electron installer
+        run: npm run dist
+        working-directory: electron-app
+
+      - name: Upload installer artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: agentrelay-windows-installer
+          path: |
+            electron-app/dist/*.exe
+            electron-app/dist/*.blockmap
+          if-no-files-found: error
+
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            electron-app/dist/*.exe
+            electron-app/dist/*.blockmap
