@@ -21,11 +21,13 @@ class DeepSeekSettingsPayload(BaseModel):
 
 class DeepSeekSettingsResponse(BaseModel):
     apiKeySet: bool
+    apiKey: str | None = None
 
 
 @router.get("/deepseek", response_model=DeepSeekSettingsResponse)
 async def get_deepseek_settings(store: SettingsStore = Depends(get_settings_store)) -> DeepSeekSettingsResponse:
-    return DeepSeekSettingsResponse(apiKeySet=store.deepseek_api_key_set())
+    key = store.get_deepseek_api_key()
+    return DeepSeekSettingsResponse(apiKeySet=key is not None, apiKey=key)
 
 
 @router.post("/deepseek", response_model=DeepSeekSettingsResponse)
@@ -34,10 +36,11 @@ async def set_deepseek_settings(
     store: SettingsStore = Depends(get_settings_store),
 ) -> DeepSeekSettingsResponse:
     store.set_deepseek_api_key(payload.apiKey)
-    return DeepSeekSettingsResponse(apiKeySet=store.deepseek_api_key_set())
+    key = store.get_deepseek_api_key()
+    return DeepSeekSettingsResponse(apiKeySet=key is not None, apiKey=key)
 
 
 @router.delete("/deepseek", response_model=DeepSeekSettingsResponse)
 async def reset_deepseek_settings(store: SettingsStore = Depends(get_settings_store)) -> DeepSeekSettingsResponse:
     store.set_deepseek_api_key(None)
-    return DeepSeekSettingsResponse(apiKeySet=False)
+    return DeepSeekSettingsResponse(apiKeySet=False, apiKey=None)

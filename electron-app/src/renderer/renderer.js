@@ -66,13 +66,27 @@ async function refreshStatus() {
     setStatus(
       `Python runtime 已就绪 (${runtimeOptions.host}:${runtimeOptions.port}) · DeepSeek Key: ${apiKeyConfigured ? "已配置" : "未配置"}`,
     );
+    updateControls();
+  } catch (error) {
+    setStatus(`无法获取状态：${error}`);
+  }
+}
+
+async function loadDeepseekSettings() {
+  if (!runtimeReady) return;
+  try {
+    const response = await fetch(`${baseUrl()}/settings/deepseek`);
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const data = await response.json();
+    apiKeyConfigured = !!data.apiKeySet;
+    apiKeyInput.value = data.apiKey || "";
     updateSettingsMessage(
       apiKeyConfigured ? "已保存 DeepSeek API Key" : "尚未配置 API Key",
       apiKeyConfigured ? "success" : "info",
     );
     updateControls();
   } catch (error) {
-    setStatus(`无法获取状态：${error}`);
+    updateSettingsMessage(`读取设置失败：${error}`, "error");
   }
 }
 
@@ -86,11 +100,7 @@ async function saveApiKey() {
       body: JSON.stringify({ apiKey: key }),
     });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    const data = await response.json();
-    apiKeyConfigured = !!data.apiKeySet;
-    updateSettingsMessage("API Key 已保存", "success");
-    apiKeyInput.value = "";
-    updateControls();
+    await loadDeepseekSettings();
     await refreshStatus();
   } catch (error) {
     updateSettingsMessage(`保存失败：${error}`, "error");
@@ -101,6 +111,7 @@ async function clearApiKey() {
   try {
     const response = await fetch(`${baseUrl()}/settings/deepseek`, { method: "DELETE" });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    apiKeyInput.value = "";
     apiKeyConfigured = false;
     updateSettingsMessage("已清除 API Key", "info");
     updateControls();
@@ -209,6 +220,7 @@ async function initialise() {
     runtimeOptions = payload;
     runtimeReady = true;
     await refreshStatus();
+    await loadDeepseekSettings();
     updateControls();
   });
 
@@ -219,6 +231,7 @@ async function initialise() {
     apiKeyConfigured = false;
     setStatus(`Python 进程已退出 (${JSON.stringify(payload)})`);
     updateSettingsMessage("runtime 已停止", "info");
+    apiKeyInput.value = "";
     updateControls();
     closeActiveStream();
   });
