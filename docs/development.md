@@ -4,7 +4,7 @@
 
 ## 1. 准备环境
 - 安装 Node.js 20+ 与 npm。
-- 安装 Python 3.11，并创建虚拟环境：
+- 安装 Python 3.12，并创建虚拟环境：
   ```bash
   cd python-runtime
   python -m venv .venv
@@ -46,7 +46,7 @@ node scripts/agentrelay-cli.mjs --serve
      ```bash
      python scripts/bootstrap_python_runtime.py
      ```
-     该脚本会自动下载 CPython 3.11 x64 embed 包，按需调整 `python311._pth`，并基于 `requirements.txt` 下载 Windows wheel 展开至 `python-runtime/dist/Lib/site-packages/`。
+     该脚本会自动下载 CPython 3.12 x64 embed 包，按需调整 `python312._pth`，并基于 `requirements.txt` 下载 Windows wheel 展开至 `python-runtime/dist/Lib/site-packages/`。
    - 如果需要手动处理，可参考脚本逻辑，确保 `python-runtime/dist/` 中包含 `python.exe`、标准库以及项目依赖。
 2. 生成安装包：
    ```bash

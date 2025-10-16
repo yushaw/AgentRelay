@@ -8,8 +8,8 @@
      ```bash
      python scripts/bootstrap_python_runtime.py
      ```
-     它会自动下载 CPython 3.11 x64 embed 包、调整 `python311._pth`，并使用 `pip download` 拉取 Windows wheel 展开到 `python-runtime/dist/Lib/site-packages/`。
-   - 若需自定义处理，请确保 `python-runtime/dist/` 中包含 `python.exe`、`python311.dll`、标准库目录以及安装好的项目依赖，并复制 `python-runtime/agentrelay/` 与 `entrypoint.py`。
+     它会自动下载 CPython 3.12 x64 embed 包、调整 `python312._pth`，并使用 `pip download` 拉取 Windows wheel 展开到 `python-runtime/dist/Lib/site-packages/`。
+   - 若需自定义处理，请确保 `python-runtime/dist/` 中包含 `python.exe`、`python312.dll`、标准库目录以及安装好的项目依赖，并复制 `python-runtime/agentrelay/` 与 `entrypoint.py`。
 2. **构建 Electron 主进程**：
    ```bash
    cd electron-app

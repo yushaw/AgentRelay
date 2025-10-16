@@ -2,7 +2,7 @@
 """
 Bootstrap a Windows CPython embedded runtime with project dependencies.
 
-This script downloads the official CPython 3.11 x64 embedded distribution,
+This script downloads the official CPython 3.12 x64 embedded distribution,
 prepares site-packages with Windows wheels for the required dependencies,
 and stages everything under `python-runtime/dist/`.
 
@@ -24,10 +24,12 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 PYTHON_RUNTIME = REPO_ROOT / "python-runtime"
 DIST_DIR = PYTHON_RUNTIME / "dist"
 CACHE_DIR = PYTHON_RUNTIME / ".cache"
-EMBED_URL = (
-    "https://www.python.org/ftp/python/3.11.8/python-3.11.8-embed-amd64.zip"
-)
-EMBED_ARCHIVE = CACHE_DIR / "python-3.11.8-embed-amd64.zip"
+EMBED_VERSION = "3.12.9"
+EMBED_MAJOR, EMBED_MINOR, *_ = EMBED_VERSION.split(".")
+EMBED_VERSION_SHORT = f"{EMBED_MAJOR}{EMBED_MINOR}"
+EMBED_STEM = f"python-{EMBED_VERSION}-embed-amd64.zip"
+EMBED_URL = f"https://www.python.org/ftp/python/{EMBED_VERSION}/{EMBED_STEM}"
+EMBED_ARCHIVE = CACHE_DIR / EMBED_STEM
 REQUIREMENTS_FILE = PYTHON_RUNTIME / "requirements.txt"
 
 
@@ -50,7 +52,7 @@ def extract_embed() -> None:
     DIST_DIR.mkdir(parents=True, exist_ok=True)
     with zipfile.ZipFile(EMBED_ARCHIVE, "r") as zf:
         zf.extractall(DIST_DIR)
-    pth_file = DIST_DIR / "python311._pth"
+    pth_file = DIST_DIR / f"python{EMBED_VERSION_SHORT}._pth"
     if pth_file.exists():
         content = pth_file.read_text(encoding="utf-8").splitlines()
         if ".\\Lib\\site-packages" not in content:
@@ -83,11 +85,11 @@ def install_requirements() -> None:
         "--platform",
         "win_amd64",
         "--python-version",
-        "311",
+        EMBED_VERSION_SHORT,
         "--implementation",
         "cp",
         "--abi",
-        "cp311",
+        f"cp{EMBED_VERSION_SHORT}",
         "--only-binary=:all:",
     ]
     subprocess.run(pip_args, check=True)
