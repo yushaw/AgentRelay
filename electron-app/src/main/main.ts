@@ -179,7 +179,7 @@ function resolveRendererPath(): string {
 
   const mainDir = dirname(fileURLToPath(import.meta.url));
   const repoRoot = resolve(mainDir, "..", "..", "..");
-  return join(repoRoot, "electron-app", "src", "renderer", "index.html");
+  return join(repoRoot, "electron-app", "dist", "renderer", "index.html");
 }
 
 async function createWindow(): Promise<void> {

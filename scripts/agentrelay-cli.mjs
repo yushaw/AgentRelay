@@ -50,7 +50,7 @@ async function main() {
     return;
   }
 
-  await run("npm", ["run", "build:main"], { cwd: electronAppDir });
+  await run("npm", ["run", "build"], { cwd: electronAppDir });
   const electronBin = process.platform === "win32" ? "npx.cmd" : "npx";
   const electronArgs = ["electron", electronDistEntry, ...passthrough];
   await run(electronBin, electronArgs, { cwd: electronAppDir });
