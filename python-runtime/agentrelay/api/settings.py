@@ -16,6 +16,14 @@ def get_settings_store(request: Request) -> SettingsStore:
     return store
 
 
+def get_settings(request: Request) -> AgentRelaySettings:
+    settings: AgentRelaySettings | None = getattr(request.app.state, "settings_config", None)
+    if not settings:
+        settings = AgentRelaySettings()
+        request.app.state.settings_config = settings
+    return settings
+
+
 class DeepSeekSettingsPayload(BaseModel):
     apiKey: str | None = None
     baseUrl: str | None = None
@@ -29,7 +37,7 @@ class DeepSeekSettingsResponse(BaseModel):
 
 @router.get("/deepseek", response_model=DeepSeekSettingsResponse)
 async def get_deepseek_settings(
-    settings: AgentRelaySettings = Depends(),
+    settings: AgentRelaySettings = Depends(get_settings),
     store: SettingsStore = Depends(get_settings_store),
 ) -> DeepSeekSettingsResponse:
     resolved = store.get_deepseek_settings(default_base=settings.deepseek_api_base)
@@ -43,7 +51,7 @@ async def get_deepseek_settings(
 @router.post("/deepseek", response_model=DeepSeekSettingsResponse)
 async def set_deepseek_settings(
     payload: DeepSeekSettingsPayload,
-    settings: AgentRelaySettings = Depends(),
+    settings: AgentRelaySettings = Depends(get_settings),
     store: SettingsStore = Depends(get_settings_store),
 ) -> DeepSeekSettingsResponse:
     store.set_deepseek_settings(payload.apiKey, payload.baseUrl)
@@ -57,7 +65,7 @@ async def set_deepseek_settings(
 
 @router.delete("/deepseek", response_model=DeepSeekSettingsResponse)
 async def reset_deepseek_settings(
-    settings: AgentRelaySettings = Depends(),
+    settings: AgentRelaySettings = Depends(get_settings),
     store: SettingsStore = Depends(get_settings_store),
 ) -> DeepSeekSettingsResponse:
     store.set_deepseek_settings(None, settings.deepseek_api_base)

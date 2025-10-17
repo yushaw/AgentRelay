@@ -28,6 +28,7 @@ def create_app(settings: AgentRelaySettings | None = None) -> FastAPI:
     run_manager = RunManager(resolved_settings, settings_store)
     app.state.settings_store = settings_store
     app.state.run_manager = run_manager
+    app.state.settings_config = resolved_settings
 
     register_routes(app, resolved_settings)
 

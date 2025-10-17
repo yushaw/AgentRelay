@@ -3,12 +3,10 @@ import pytest
 from agentrelay.config import AgentRelaySettings
 from agentrelay.services.run_manager import RunManager
 
-from .conftest import TempSettingsStore
-
 
 @pytest.mark.asyncio
-async def test_run_manager_fails_without_api_key(tmp_path):
-    store = TempSettingsStore(tmp_path)
+async def test_run_manager_fails_without_api_key(temp_store):
+    store = temp_store
     settings = AgentRelaySettings()
     manager = RunManager(settings, store)
 

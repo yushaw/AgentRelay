@@ -4,10 +4,8 @@ from agentrelay.app import create_app
 from agentrelay.config import AgentRelaySettings
 from agentrelay.services.run_manager import RunManager
 
-from .conftest import TempSettingsStore
 
-
-def build_test_app(store: TempSettingsStore):
+def build_test_app(store):
     settings = AgentRelaySettings(
         service_version="1.2.3-test",
         deepseek_api_base="https://api.deepseek.com/v1",
@@ -16,14 +14,15 @@ def build_test_app(store: TempSettingsStore):
     app = create_app(settings)
     app.state.settings_store = store
     app.state.run_manager = RunManager(settings, store)
-    return app, settings
+    app.state.settings_config = settings
+    return app
 
 
-def test_status_includes_deepseek_metadata(tmp_path):
-    store = TempSettingsStore(tmp_path)
+def test_status_includes_deepseek_metadata(temp_store):
+    store = temp_store
     store.set_deepseek_settings("sk-demo", "https://custom-base")
 
-    app, _settings = build_test_app(store)
+    app = build_test_app(store)
     client = TestClient(app)
 
     response = client.get("/status")

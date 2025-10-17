@@ -8,6 +8,7 @@ python-runtime/__pycache__/
 python-runtime/*.pyc
 python-runtime/.cache/
 python-runtime/dist/
+python-runtime/**/__pycache__/
 
 # OS / editor
 .DS_Store

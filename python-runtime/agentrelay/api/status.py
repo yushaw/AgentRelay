@@ -27,9 +27,17 @@ def get_settings_store(request: Request) -> SettingsStore:
     return store
 
 
+def get_settings(request: Request) -> AgentRelaySettings:
+    settings: AgentRelaySettings | None = getattr(request.app.state, "settings_config", None)
+    if not settings:
+        settings = AgentRelaySettings()
+        request.app.state.settings_config = settings
+    return settings
+
+
 @router.get("", response_model=ServiceStatusResponse)
 async def get_status(
-    settings: AgentRelaySettings = Depends(),
+    settings: AgentRelaySettings = Depends(get_settings),
     store: SettingsStore = Depends(get_settings_store),
 ) -> ServiceStatusResponse:
     deepseek_settings = store.get_deepseek_settings(settings.deepseek_api_base)

@@ -11,7 +11,7 @@ class SettingsStore:
     """Persist simple AgentRelay runtime settings on disk."""
 
     def __init__(self, app_name: str = "AgentRelay", app_author: str = "AgentRelay"):
-        dirs = PlatformDirs(app_name=app_name, appauthor=app_author, roaming=False)
+        dirs = PlatformDirs(appname=app_name, appauthor=app_author, roaming=False)
         self._settings_dir = Path(dirs.user_data_dir)
         self._settings_file = self._settings_dir / "settings.json"
         self._settings_dir.mkdir(parents=True, exist_ok=True)
