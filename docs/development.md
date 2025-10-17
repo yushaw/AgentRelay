@@ -34,10 +34,14 @@ node scripts/agentrelay-cli.mjs --serve
 
 > 注意：首次执行会触发 `npm run build:main`，需要确保 `electron-app/node_modules` 已安装到位。
 
-## 4. 开发提示
-- Electron 主进程代码位于 `electron-app/src/main/`，包含 Python 子进程调度、headless 处理与 IPC 桥接。
-- 预加载脚本 `preload.ts` 通过 `contextBridge` 暴露受控 API，前端页面可在 `window.agentrelay` 中访问。
-- Renderer 当前为最小对话占位；后续将替换为多 Agent UI 框架时，可直接接入共享的 HTTP/SSE 协议。
+## 4. 前端开发提示
+- 主进程代码位于 `electron-app/src/main/`，负责托管 Python Runtime、会话存储以及渲染层 IPC。
+- 预加载脚本 `src/main/preload.ts` 通过 `contextBridge` 暴露 `window.agentrelay`，包含 Runtime 选项、标准输出事件以及 `sessions.load/save` 接口。
+- 渲染层使用 React + Vite + Tailwind + shadcn/ui，入口在 `src/renderer/src/`；其中 `state/app-store.ts` 管理多会话、设置与 Runtime 状态。
+- 调试方式：
+  1. 修改前端后执行 `npm run build`（会编译主进程与 renderer）。
+  2. 运行 `node scripts/agentrelay-cli.mjs --serve` 启动整套应用查看效果。
+- 对话界面已提供多会话、Markdown 渲染、复制/停止等能力；如需扩展，可在 `components/chat` 与 `components/sidebar` 下添加新组件。
 - 所有客户端（Electron、本地宿主或外部生态应用）均应复用 `/status`、`/agents`、`/runs` 等端点，避免分叉。
 
 ## 5. 打包发布

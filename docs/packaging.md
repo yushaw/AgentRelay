@@ -11,16 +11,16 @@
      它会自动下载 CPython 3.12 x64 embed 包、调整 `python312._pth`，并使用 `pip download` 拉取 Windows wheel 展开到 `python-runtime/dist/Lib/site-packages/`。
    - 若需自定义处理，请确保 `python-runtime/dist/` 中包含 `python.exe`、`python312.dll`、标准库目录以及安装好的项目依赖，并复制 `python-runtime/agentrelay/` 与 `entrypoint.py`。
 2. **构建 Electron 主进程**：
-   ```bash
-   cd electron-app
-   npm install
-   npm run build:main
-   ```
-3. **生成安装包**：
  ```bash
- npm run dist
+ cd electron-app
+ npm install
+ npm run build      # 构建 Electron 主进程与 React Renderer
  ```
- 构建完成后，`electron-app/dist/` 会出现 `.exe` 安装程序和 `.blockmap` 更新元数据。
+3. **生成安装包**：
+   ```bash
+   npm run dist
+   ```
+   构建完成后，`electron-app/dist/` 会出现 `.exe` 安装程序和 `.blockmap` 更新元数据。
   - 也可以在仓库根目录执行 `node scripts/agentrelay-cli.mjs package`，自动触发上述命令。
 4. **验证安装**：
    - 运行生成的安装程序，确认默认会拉起桌面对话窗口。

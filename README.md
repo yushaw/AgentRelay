@@ -12,7 +12,7 @@ AgentRelay 是一个面向 Windows 10+ 的本地 AI Agent “副驾”平台，�
 AgentRelay/
  ├─ electron-app/         # Electron 主工程 + 构建配置
  │   ├─ src/main/         # 主进程（管理 Python runtime、headless 模式、IPC）
- │   ├─ src/renderer/     # 对话 UI（DeepSeek Chat + 设置面板）
+ │   ├─ src/renderer/     # React + Vite 前端（DeepSeek Chat、会话列表、设置面板）
  │   └─ package.json      # electron-builder 配置、脚本
  ├─ python-runtime/
  │   ├─ agentrelay/       # FastAPI + LangGraph Runtime
@@ -24,16 +24,22 @@ AgentRelay/
  └─ installer/            # 安装器/更新器扩展点（预留）
 ```
 
-Electron 与 Python 始终通过本地 HTTP/SSE 通信；主进程只封装协议 SDK，不维护私有 IPC。
+Electron 与 Python 始终通过本地 HTTP/SSE 通信；主进程只封装协议 SDK，不维护私有 IPC。React 渲染层通过 `window.agentrelay` 访问运行状态、会话存储与 HTTP API。
 
-## 3. 与 SnapDescribe.Host 的协作
-### 3.1 进程与模式
+## 3. 核心体验
+- **多会话聊天**：左侧列表支持快速新建、重命名与删除，会话数据持久化到本地用户目录，重启后自动恢复。
+- **流式回复**：主区域以 Markdown + 代码高亮呈现消息，支持复制提示、生成中指示与一键停止。
+- **设置面板**：内置 DeepSeek Base URL 与 API Key 管理，保存即校验，状态徽标同步展示。
+- **本地安全**：历史记录与密钥仅存储在本机；Headless 模式可供 SnapDescribe.Host 或第三方复用相同协议。
+
+## 4. 与 SnapDescribe.Host 的协作
+### 4.1 进程与模式
 - `agentrelay.exe --serve --port=51055 --auth-token=<token>`：默认模式，启动 Python 服务并打开 Electron 对话窗口。
 - `agentrelay.exe --serve --headless`：无头运行，仅托管 HTTP/SSE 服务，适用于被其他桌面应用嵌入。
 - Python Runtime 在启动完成后需输出 `AGENTRELAY READY <port>` 或写入约定的 ready 文件，供宿主探测。
 - 发生崩溃时，Electron 负责拉起新的 Python 子进程并记录事件。
 
-### 3.2 协议约定
+### 4.2 协议约定
 - 所有请求都遵循 `docs/AgentRelayProtocol.md`，并携带 `Authorization: Bearer <token>` 与 `X-AgentRelay-Protocol`.
 - 核心端点：
   - `GET /status`：返回 `service`、`version`、`protocolVersion`、`agentsEtag`、`maxConcurrentRuns`。
@@ -43,12 +49,12 @@ Electron 与 Python 始终通过本地 HTTP/SSE 通信；主进程只封装协�
   - `POST /runs/{id}/cancel`：取消运行。
 - LangGraph 通过 `run.tool_call` 请求任何外部执行；若宿主超时未回应，必须发 `run.failed` 且 `errorCode=TOOL_TIMEOUT`。
 
-### 3.3 日志与离线约束
+### 4.3 日志与离线约束
 - Python 侧输出 JSONL 日志（`timestamp`, `level`, `message`, `runId`, `traceId`, `context`）。
 - Electron UI 提供实时日志、运行状态与调试开关。
 - 当启动参数/请求声明 `allowNetwork=false` 时，Runtime 必须阻止任何外部网络连接。
 
-## 4. 里程碑
+## 5. 里程碑
 - **M0 骨架**：Electron+Python 脚手架、`agentrelay.exe --serve`、`GET /status`。
 - **M1 核心执行**：接入 LangGraph，多轮对话 Agent，完成 Run→SSE→工具回调闭环。
 - **M2 Catalog & UI**：`/agents` 模板目录、对话/日志可视化、Runtime 下载校验。
@@ -57,7 +63,7 @@ Electron 与 Python 始终通过本地 HTTP/SSE 通信；主进程只封装协�
 
 > 当前实现的 Electron UI 已内置 DeepSeek 对话体验：在设置面板中保存 API Key 后即可通过 `POST /runs` + SSE 体验流式回复，同时 UI 会展示运行日志与事件流。
 
-## 5. 发布形态
+## 6. 发布形态
 - 目标平台：Windows 10 及以上（后续再评估其他平台）。
 - 安装包产物包含：
   - NSIS 安装程序（由 `npm run dist` 生成）。
@@ -65,12 +71,13 @@ Electron 与 Python 始终通过本地 HTTP/SSE 通信；主进程只封装协�
   - `agentrelay.exe` CLI、`agentrelay-info.json` 元数据、`tokens.json`（宿主写入）。
 - CLI 参数：`--serve`、`--headless`、`--port`、`--host`、`--offline`、`--allow-guest`、`--python <path>`。
 
-## 6. 文档与同步
+## 7. 文档与同步
 - `docs/AgentRelayProtocol.md`：HTTP/SSE 协议说明，与主仓 `docs/AgentRelayProtocol.md` 保持一致。
 - `docs/development.md`：启动/调试指南，包含生成嵌入式 Python Runtime 的脚本说明。
 - `docs/packaging.md`：Windows 安装包打包流程与常见问题。
+- `python-runtime/tests/`：pytest 测试覆盖 DeepSeek 设置、`/status` 元数据、运行失败路径，建议每次改动 Runtime 后运行 `python -m pytest`。
 
-## 7. 示例请求
+## 8. 示例请求
 ```
 POST /runs
 Authorization: Bearer <token>
@@ -133,7 +140,7 @@ event: run.failed
 data: {"runId":"...","errorCode":"TOOL_TIMEOUT","message":"Host tool call timeout"}
 ```
 
-## 8. 变更准则
+## 9. 变更准则
 - 协议调整需同步更新仓库 docs 与主仓文档，并 bump `protocolVersion`。
 - 新版本发布后请更新 manifest、Release Notes，并通知宿主团队跑兼容性测试。
 - 遇到协议不兼容时应提供回滚/降级指引，保留上一稳定版本下载。
