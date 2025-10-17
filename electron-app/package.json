@@ -3,7 +3,6 @@
   "version": "0.1.0",
   "description": "Electron shell for AgentRelay on Windows",
   "main": "dist/main/main.js",
-  "type": "module",
   "private": true,
   "scripts": {
     "build": "npm run build:main && npm run build:renderer",
@@ -59,7 +58,7 @@
     "files": [
       "dist/main/**/*",
       {
-        "from": "src/renderer",
+        "from": "dist/renderer",
         "to": "renderer",
         "filter": ["**/*"]
       }

@@ -1,8 +1,7 @@
 import { app, BrowserWindow, ipcMain } from "electron";
 import { spawn, type ChildProcess } from "node:child_process";
 import { createInterface } from "node:readline";
-import { fileURLToPath } from "node:url";
-import { dirname, join, resolve } from "node:path";
+import { join, resolve } from "node:path";
 import { EventEmitter } from "node:events";
 import log from "electron-log";
 
@@ -94,7 +93,7 @@ class PythonRuntimeManager extends EventEmitter {
       return join(process.resourcesPath, "python-runtime", "entrypoint.py");
     }
 
-    const mainDir = dirname(fileURLToPath(import.meta.url));
+    const mainDir = __dirname;
     const repoRoot = resolve(mainDir, "..", "..", "..");
     return join(repoRoot, "python-runtime", "entrypoint.py");
   }
@@ -181,7 +180,7 @@ function resolveRendererPath(): string {
     return join(app.getAppPath(), "renderer", "index.html");
   }
 
-  const mainDir = dirname(fileURLToPath(import.meta.url));
+  const mainDir = __dirname;
   const repoRoot = resolve(mainDir, "..", "..", "..");
   return join(repoRoot, "electron-app", "dist", "renderer", "index.html");
 }
@@ -196,7 +195,7 @@ async function createWindow(): Promise<void> {
     width: 960,
     height: 650,
     webPreferences: {
-      preload: join(dirname(fileURLToPath(import.meta.url)), "preload.js"),
+      preload: join(__dirname, "preload.js"),
     },
   });
   await mainWindow.loadFile(resolveRendererPath());
